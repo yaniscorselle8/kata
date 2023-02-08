@@ -76,6 +76,7 @@ def deposit():
     db.session.query(BankAccount).filter_by(id=id).update(
       dict(modificationDate=modificationDate, amount=amount))
     db.session.commit()
+    new_operation("deposit", amount, body['userFrom'], body['accountFrom'])
     return "The deposit have been done"
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
@@ -90,6 +91,7 @@ def withdrawal():
     db.session.query(BankAccount).filter_by(id=id).update(
       dict(modificationDate=modificationDate, amount=amount))
     db.session.commit()
+    new_operation("withdrawal", amount, body['userFrom'], body['accountFrom'])
     return "The withdrawal have been done"
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
@@ -106,11 +108,34 @@ def history():
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
     return error
+  
+@app.route('/api/v1/create-accounts', methods=['GET'])
+def create_accounts():
+  body = request.get_json()
+  creationDate = date.today()
+  try:   
+    db.session.add(User(body['cin'], body['name'], body['surname'], body['dateOfBirth'], creationDate, body['modificationDate'], body['jobTitle']))
+    db.session.commit()
+    return "User created"
+  except SQLAlchemyError as e:
+    error = str(e.__dict__['orig'])
+    return error
 
 def get_amount(id):
   try:
     bankAccount = BankAccount.query.get(id)
     return bankAccount.__dict__['amount']
+  except SQLAlchemyError as e:
+    error = str(e.__dict__['orig'])
+    return error
+
+def new_operation(type, amount, userFrom, accountFrom):
+  executionDate = date.today()
+  realDate = date.today()
+  try:   
+    db.session.add(Operation(type, amount, executionDate, realDate, userFrom, accountFrom))
+    db.session.commit()
+    return "Operation created"
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
     return error
