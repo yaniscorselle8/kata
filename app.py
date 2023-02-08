@@ -103,14 +103,12 @@ def withdrawal():
   else:
     return "You doesn't have enough monet", 400
 
-@app.route('/api/v1/history', methods=['GET'])
+@app.route('/api/v1/history/<id>', methods=['GET'])
 def history():
-  operations = []
   try:
-    for operation in db.session.query(Operation).all():
-      del operation.__dict__['_sa_instance_state'] #TypeError: Object of type 'InstanceState' is not JSON serializable
-      operations.append(operation.__dict__)
-    return jsonify(operations)
+    operation = Operation.query.get(id)
+    del operation.__dict__['_sa_instance_state'] #TypeError: Object of type 'InstanceState' is not JSON serializable
+    return jsonify(operation.__dict__)
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
     return error
