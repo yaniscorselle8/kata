@@ -153,3 +153,27 @@ def new_operation(type, amount, userFrom, accountFrom):
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
     return error
+  
+@app.route('/api/v1/accounts', methods=['GET'])
+def get_accounts():
+  bankAccounts = []
+  try:
+    for bankAccount in db.session.query(BankAccount).all():
+      del bankAccount.__dict__['_sa_instance_state'] #TypeError: Object of type 'InstanceState' is not JSON serializable
+      bankAccounts.append(bankAccount.__dict__)
+    return jsonify(bankAccounts)
+  except SQLAlchemyError as e:
+    error = str(e.__dict__['orig'])
+    return error
+  
+@app.route('/api/v1/users', methods=['GET'])
+def get_users():
+  users = []
+  try:
+    for user in db.session.query(User).all():
+      del user.__dict__['_sa_instance_state'] #TypeError: Object of type 'InstanceState' is not JSON serializable
+      users.append(user.__dict__)
+    return jsonify(users)
+  except SQLAlchemyError as e:
+    error = str(e.__dict__['orig'])
+    return error
