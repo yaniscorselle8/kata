@@ -87,15 +87,21 @@ def withdrawal():
   body = request.get_json()
   modificationDate = date.today()
   amount = get_amount(id) - body['deposit'] 
-  try:   
-    db.session.query(BankAccount).filter_by(id=id).update(
-      dict(modificationDate=modificationDate, amount=amount))
-    db.session.commit()
-    new_operation("withdrawal", amount, body['userFrom'], body['accountFrom'])
-    return "The withdrawal have been done"
-  except SQLAlchemyError as e:
-    error = str(e.__dict__['orig'])
-    return error
+  account = BankAccount.query.filter_by(id=body['account_id']).first()
+  if not account:
+      return 'Account not found', 404
+  if account.amount > amount:
+    try:   
+      db.session.query(BankAccount).filter_by(id=body['account_id']).update(
+        dict(modificationDate=modificationDate, amount=amount))
+      db.session.commit()
+      new_operation("withdrawal", amount, body['userFrom'], body['accountFrom'])
+      return "The withdrawal have been done"
+    except SQLAlchemyError as e:
+      error = str(e.__dict__['orig'])
+      return error
+  else:
+    return "You doesn't have enough monet", 400
 
 @app.route('/api/v1/history', methods=['GET'])
 def history():
