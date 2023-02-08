@@ -71,9 +71,9 @@ db.create_all()
 def deposit():
   body = request.get_json()
   modificationDate = date.today()
-  amount = get_amount(id) + body['deposit']
+  amount = get_amount(body['account_id']) + body['deposit']
   try:   
-    db.session.query(BankAccount).filter_by(id=id).update(
+    db.session.query(BankAccount).filter_by(id=body['account_id']).update(
       dict(modificationDate=modificationDate, amount=amount))
     db.session.commit()
     new_operation("deposit", amount, body['userFrom'], body['accountFrom'])
@@ -86,7 +86,7 @@ def deposit():
 def withdrawal():
   body = request.get_json()
   modificationDate = date.today()
-  amount = get_amount(id) - body['deposit'] 
+  amount = get_amount(body['account_id']) - body['deposit'] 
   account = BankAccount.query.filter_by(id=body['account_id']).first()
   if not account:
       return 'Account not found', 404
