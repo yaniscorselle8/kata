@@ -77,10 +77,10 @@ def deposit():
       dict(modificationDate=modificationDate, amount=amount))
     db.session.commit()
     new_operation("deposit", amount, body['user_id'], body['account_id'])
-    return "The deposit have been done"
+    return "The deposit have been done", 200
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
-    return error
+    return error, 500
 
 @app.route('/api/v1/withdrawal', methods=['PUT'])
 def withdrawal():
@@ -96,7 +96,7 @@ def withdrawal():
         dict(modificationDate=modificationDate, amount=amount))
       db.session.commit()
       new_operation("withdrawal", amount, body['user_id'], body['account_id'])
-      return "The withdrawal have been done"
+      return "The withdrawal have been done", 200
     except SQLAlchemyError as e:
       error = str(e.__dict__['orig'])
       return error
@@ -104,14 +104,14 @@ def withdrawal():
     return "You doesn't have enough monet", 400
 
 @app.route('/api/v1/history/<id>', methods=['GET'])
-def history():
+def history(id):
   try:
     operation = Operation.query.get(id)
     del operation.__dict__['_sa_instance_state'] #TypeError: Object of type 'InstanceState' is not JSON serializable
-    return jsonify(operation.__dict__)
+    return jsonify(operation.__dict__), 200
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
-    return error
+    return error, 500
   
 @app.route('/api/v1/create-user', methods=['POST'])
 def create_user():
@@ -121,10 +121,10 @@ def create_user():
   try:   
     db.session.add(User(body['cin'], body['name'], body['surname'], body['dateOfBirth'], creationDate, modificationDate, body['jobTitle']))
     db.session.commit()
-    return "User created"
+    return "User created", 200
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
-    return error
+    return error, 500
   
 @app.route('/api/v1/create-account', methods=['POST'])
 def create_account():
@@ -134,18 +134,18 @@ def create_account():
   try:   
     db.session.add(BankAccount(body['type'], body['surname'], creationDate, modificationDate, body['userId'], body['amount']))
     db.session.commit()
-    return "Account created"
+    return "Account created", 200
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
-    return error
+    return error, 500
 
 def get_amount(id):
   try:
     bankAccount = BankAccount.query.get(id)
-    return bankAccount.__dict__['amount']
+    return bankAccount.__dict__['amount'], 200
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
-    return error
+    return error, 500
 
 def new_operation(type, amount, userFrom, accountFrom):
   executionDate = date.today()
@@ -153,10 +153,10 @@ def new_operation(type, amount, userFrom, accountFrom):
   try:   
     db.session.add(Operation(type, amount, executionDate, realDate, userFrom, accountFrom))
     db.session.commit()
-    return "Operation created"
+    return "Operation created", 200
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
-    return error
+    return error, 500
   
 @app.route('/api/v1/accounts', methods=['GET'])
 def get_accounts():
@@ -165,10 +165,10 @@ def get_accounts():
     for bankAccount in db.session.query(BankAccount).all():
       del bankAccount.__dict__['_sa_instance_state'] #TypeError: Object of type 'InstanceState' is not JSON serializable
       bankAccounts.append(bankAccount.__dict__)
-    return jsonify(bankAccounts)
+    return jsonify(bankAccounts), 200
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
-    return error
+    return error, 500
   
 @app.route('/api/v1/users', methods=['GET'])
 def get_users():
@@ -177,7 +177,7 @@ def get_users():
     for user in db.session.query(User).all():
       del user.__dict__['_sa_instance_state'] #TypeError: Object of type 'InstanceState' is not JSON serializable
       users.append(user.__dict__)
-    return jsonify(users)
+    return jsonify(users), 200
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
-    return error
+    return error, 500
