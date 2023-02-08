@@ -71,12 +71,12 @@ db.create_all()
 def deposit():
   body = request.get_json()
   modificationDate = date.today()
-  amount = get_amount(body['account_id']) + body['deposit']
+  amount = int(get_amount(body['account_id'])) + int(body['deposit'])
   try:   
     db.session.query(BankAccount).filter_by(id=body['account_id']).update(
       dict(modificationDate=modificationDate, amount=amount))
     db.session.commit()
-    new_operation("deposit", amount, body['userFrom'], body['accountFrom'])
+    new_operation("deposit", amount, body['user_id'], body['account_id'])
     return "The deposit have been done"
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
@@ -86,7 +86,7 @@ def deposit():
 def withdrawal():
   body = request.get_json()
   modificationDate = date.today()
-  amount = get_amount(body['account_id']) - body['deposit'] 
+  amount = int(get_amount(body['account_id'])) - int(body['deposit']) 
   account = BankAccount.query.filter_by(id=body['account_id']).first()
   if not account:
       return 'Account not found', 404
@@ -95,7 +95,7 @@ def withdrawal():
       db.session.query(BankAccount).filter_by(id=body['account_id']).update(
         dict(modificationDate=modificationDate, amount=amount))
       db.session.commit()
-      new_operation("withdrawal", amount, body['userFrom'], body['accountFrom'])
+      new_operation("withdrawal", amount, body['user_id'], body['account_id'])
       return "The withdrawal have been done"
     except SQLAlchemyError as e:
       error = str(e.__dict__['orig'])
