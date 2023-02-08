@@ -101,7 +101,33 @@ def withdrawal():
       error = str(e.__dict__['orig'])
       return error
   else:
-    return "You doesn't have enough monet", 400
+    return "You doesn't have enough money", 400
+  
+@app.route('/api/v1/transfer', methods=['PUT'])
+def transfer():
+  body = request.get_json()
+  modificationDate = date.today()
+  amount_sender = int(get_amount(body['account_id_sender'])) - int(body['deposit']) 
+  amount_receiver = int(get_amount(body['account_id_receiver'])) + int(body['deposit']) 
+  accountSender = BankAccount.query.filter_by(id=body['account_id_sender']).first()
+  accountReceiver = BankAccount.query.filter_by(id=body['account_id_receiver']).first()
+  if not (accountSender or accountReceiver) :
+      return 'Account not found', 404
+  if accountSender.amount > amount_sender:
+    try:   
+      db.session.query(BankAccount).filter_by(id=body['account_id_sender']).update(
+        dict(modificationDate=modificationDate, amount=amount_sender))
+      db.session.query(BankAccount).filter_by(id=body['account_id_receiver']).update(
+        dict(modificationDate=modificationDate, amount=amount_receiver))
+      db.session.commit()
+      new_operation("withdrawal", amount_sender, body['user_id'], body['account_id'])
+      new_operation("deposit", amount_receiver, body['user_id'], body['account_id'])
+      return "The transfer have been done", 200
+    except SQLAlchemyError as e:
+      error = str(e.__dict__['orig'])
+      return error
+  else:
+    return "The sender doesn't have enough money", 400
 
 @app.route('/api/v1/history/<id>', methods=['GET'])
 def history(id):
