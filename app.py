@@ -109,14 +109,28 @@ def history():
     error = str(e.__dict__['orig'])
     return error
   
-@app.route('/api/v1/create-accounts', methods=['GET'])
-def create_accounts():
+@app.route('/api/v1/create-user', methods=['POST'])
+def create_user():
   body = request.get_json()
   creationDate = date.today()
+  modificationDate = date.today()
   try:   
-    db.session.add(User(body['cin'], body['name'], body['surname'], body['dateOfBirth'], creationDate, body['modificationDate'], body['jobTitle']))
+    db.session.add(User(body['cin'], body['name'], body['surname'], body['dateOfBirth'], creationDate, modificationDate, body['jobTitle']))
     db.session.commit()
     return "User created"
+  except SQLAlchemyError as e:
+    error = str(e.__dict__['orig'])
+    return error
+  
+@app.route('/api/v1/create-account', methods=['POST'])
+def create_account():
+  body = request.get_json()
+  creationDate = date.today()
+  modificationDate = date.today()
+  try:   
+    db.session.add(BankAccount(body['type'], body['surname'], creationDate, modificationDate, body['userId'], body['amount']))
+    db.session.commit()
+    return "Account created"
   except SQLAlchemyError as e:
     error = str(e.__dict__['orig'])
     return error
